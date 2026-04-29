@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vansh Stationary - Full System</title>
+<style>
+body{font-family:Arial;margin:0;background:#eef2f7}
+header,footer{background:#1e2a38;color:#fff;text-align:center;padding:15px}
+nav{background:#2c3e50;text-align:center;padding:10px}
+nav a{color:white;margin:10px;text-decoration:none;font-weight:bold}
+.container{padding:20px}
+.card{background:white;padding:15px;margin:10px 0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+input,select,textarea{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
+button{background:#27ae60;color:white;padding:10px;border:none;border-radius:6px;cursor:pointer}
+button:hover{background:#1f8f4d}
+.table{width:100%;border-collapse:collapse}
+.table td,.table th{border:1px solid #ddd;padding:8px;text-align:center}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Vansh Stationary</h1>
+<p>Complete Smart Shop System</p>
+</header>
+
+<nav>
+<a href="#shop">Shop</a>
+<a href="#cart">Cart</a>
+<a href="#admin">Admin</a>
+</nav>
+
+<div class="container" id="shop">
+<div class="card">
+<h2>Products</h2>
+<select id="product">
+<option value="Notebook-50">Notebook ₹50</option>
+<option value="Pen-10">Pen ₹10</option>
+<option value="Bag-500">Bag ₹500</option>
+<option value="File-30">File ₹30</option>
+</select>
+<input type="number" id="qty" placeholder="Quantity">
+<button onclick="addToCart()">Add</button>
+</div>
+</div>
+
+<div class="container" id="cart">
+<div class="card">
+<h2>Cart</h2>
+<table class="table" id="cartTable"></table>
+<h3 id="total">Total: ₹0</h3>
+<input id="name" placeholder="Name">
+<input id="phone" placeholder="Phone">
+<textarea id="address" placeholder="Address"></textarea>
+
+<h3>UPI Payment</h3>
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=yourupi@upi">
+
+<button onclick="placeOrder()">Place Order</button>
+</div>
+</div>
+
+<div class="container" id="admin">
+<div class="card">
+<h2>Admin Panel</h2>
+<input id="adminUser" placeholder="Username">
+<input id="adminPass" placeholder="Password" type="password">
+<button onclick="login()">Login</button>
+
+<div id="adminPanel" class="hidden">
+<h3>Orders</h3>
+<ul id="orders"></ul>
+</div>
+</div>
+</div>
+
+<footer>
+<p>© Vansh Stationary</p>
+</footer>
+
+<script>
+let cart=[];
+let orders=[];
+
+function addToCart(){
+let val=document.getElementById("product").value;
+let qty=document.getElementById("qty").value;
+if(!qty)return alert("Enter qty");
+let [name,price]=val.split("-");
+cart.push({name,qty,price});
+renderCart();
+}
+
+function renderCart(){
+let table=document.getElementById("cartTable");
+table.innerHTML='<tr><th>Item</th><th>Qty</th><th>Price</th></tr>';
+let total=0;
+cart.forEach(i=>{
+let p=i.qty*i.price;
+total+=p;
+table.innerHTML+=`<tr><td>${i.name}</td><td>${i.qty}</td><td>${p}</td></tr>`;
+});
+document.getElementById("total").innerText="Total: ₹"+total;
+}
+
+function placeOrder(){
+let name=document.getElementById("name").value;
+let phone=document.getElementById("phone").value;
+let address=document.getElementById("address").value;
+
+let total=document.getElementById("total").innerText;
+let items=cart.map(i=>`${i.name} x${i.qty}`).join(", ");
+
+let order={name,phone,address,items,total};
+orders.push(order);
+
+// WhatsApp
+let msg=`Order:%0A${items}%0A${total}%0A${name}%0A${phone}%0A${address}`;
+window.open(`https://wa.me/917906001785?text=${msg}`,'_blank');
+
+// Google Sheet (replace URL)
+fetch("YOUR_GOOGLE_SCRIPT_URL",{
+method:"POST",
+body:JSON.stringify(order)
+});
+
+alert("Order Placed");
+cart=[];
+renderCart();
+}
+
+function login(){
+let u=document.getElementById("adminUser").value;
+let p=document.getElementById("adminPass").value;
+if(u==="admin" && p==="12345"){
+document.getElementById("adminPanel").classList.remove("hidden");
+showOrders();
+}else alert("Wrong login");
+}
+
+function showOrders(){
+let list=document.getElementById("orders");
+list.innerHTML="";
+orders.forEach(o=>{
+list.innerHTML+=`<li>${o.name} - ${o.items} - ${o.total}</li>`;
+});
+}
+</script>
+
+</body>
+</html>
